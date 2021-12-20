@@ -1,0 +1,51 @@
+version: "3.7"
+
+services:
+  # Grafana
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    env_file:
+      - .env
+    networks:
+      - monitoring-stack
+
+  # InfluxDB
+  influxdb:
+    image: influxdb
+    container_name: influxdb
+    volumes:
+      - "influxdb-data:/var/lib/influxdb"
+    env_file:
+      - .env
+    networks:
+      - monitoring-stack
+
+  # Telegraf
+  telegraf:
+    build: ./telegraf
+    container_name: telegraf
+    links:
+      - influxdb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/hostfs/proc
+    privileged: true
+    env_file:
+      - .env
+    networks: 
+      - monitoring-stack
+
+volumes:
+  # InfluxDB
+  influxdb-data:
+  # Grafana
+  grafana-data:
+
+networks:
+  # Common
+  monitoring-stack:
